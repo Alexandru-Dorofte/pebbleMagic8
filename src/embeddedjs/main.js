@@ -16,21 +16,6 @@ const CALM = {
     window: render.makeColor(0, 0, 170),
     rim: render.makeColor(0, 85, 255),
 };
-// Each shake picks a different color theme (same roles as CALM)
-const theme6 = (header, hint, ball, shine, window, rim) => ({
-    header: render.makeColor(...header), hint: render.makeColor(...hint), ball: render.makeColor(...ball),
-    shine: render.makeColor(...shine), window: render.makeColor(...window), rim: render.makeColor(...rim),
-});
-const THEMES = [
-    CALM,
-    theme6([170, 85, 255], [170, 0, 255], [85, 0, 85], [170, 85, 255], [85, 0, 170], [170, 0, 255]),   // purple
-    theme6([85, 255, 85], [0, 255, 0], [0, 85, 0], [85, 255, 85], [0, 170, 0], [0, 255, 0]),           // green
-    theme6([85, 255, 255], [0, 255, 255], [0, 85, 85], [85, 255, 255], [0, 85, 85], [0, 170, 170]),    // teal
-    theme6([255, 170, 85], [255, 170, 0], [170, 85, 0], [255, 170, 85], [170, 85, 0], [255, 170, 0]),  // orange
-    theme6([255, 85, 255], [255, 0, 255], [170, 0, 85], [255, 85, 170], [170, 0, 170], [255, 0, 255]), // pink
-];
-let themeIndex = 0;
-
 // Same roles in red, for when it gets asked too much
 const ANGRY = {
     header: render.makeColor(255, 85, 85),
@@ -240,15 +225,7 @@ function ask() {
     askTimes.push(t);
     const wasAngry = theme === ANGRY;
     const mashing = askTimes.length >= ANGRY_COUNT;
-    if (!wasAngry && (mashing || Math.random() < ANGRY_CHANCE)) {
-        theme = ANGRY;
-    } else {
-        // New random color theme, never the same as the last one
-        let i;
-        do i = Math.floor(Math.random() * THEMES.length); while (i === themeIndex);
-        themeIndex = i;
-        theme = THEMES[i];
-    }
+    theme = !wasAngry && (mashing || Math.random() < ANGRY_CHANCE) ? ANGRY : CALM;
     if (theme === ANGRY) askTimes = [];   // start counting fresh after an outburst
 
     state = "thinking";
