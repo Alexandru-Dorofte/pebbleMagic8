@@ -1,10 +1,14 @@
-# PebbleMagic8
+# pebbleMagic8
 
 A retro Magic 8-Ball for the Pebble Time 2. Ask a question, flick your wrist (or
 press Select), and the pixel-art 8-ball shakes, buzzes and lights up with its
 answer in a blue-and-white retro style.
 
 Built with Pebble Alloy (embedded JavaScript, powered by Moddable XS).
+
+| Ready | Shaking | Answer |
+|:---:|:---:|:---:|
+| <img src="screenshots/idle.png" alt="Ready" width="200"> | <img src="screenshots/shaking.png" alt="Shaking" width="200"> | <img src="screenshots/answer.png" alt="Answer" width="200"> |
 
 ## Building & running
 
