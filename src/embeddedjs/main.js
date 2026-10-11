@@ -162,10 +162,9 @@ function draw() {
         drawCentered("OR PRESS SELECT", 198, 2, midBlue);
     } else if (state === "thinking") {
         drawBall(100 + (shakeTick % 2 ? 8 : -8), 100, 60, 4);
-        // Dots grow 0-3, padded so the text doesn't jump sideways
-        const dots = ".".repeat(Math.floor(shakeTick / 3) % 4);
-        const x = Math.round((render.width - textWidth(waiting + "...", 2)) / 2);
-        drawText(waiting + dots, x, 186, 2, white);
+        // Message centered, with the dots (growing 0-3) on their own line below
+        drawCentered(waiting, 178, 2, white);
+        drawCentered(".".repeat(Math.floor(shakeTick / 3) % 4), 196, 2, white);
     } else {
         drawAnswerWindow(100, 120, 84, 4);
         const lines = wrap(answer, 2, 150);
