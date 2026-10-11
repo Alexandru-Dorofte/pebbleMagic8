@@ -211,9 +211,9 @@ function typeNext() {
 }
 let shakeTick = 0;
 
-// Asking 4 times within 8 seconds makes it angry: red theme and a forced "NO!".
-// It also has a small random chance of being grumpy for no reason.
-const ANGRY_COUNT = 4, ANGRY_WINDOW = 8000, ANGRY_CHANCE = 0.03;
+// Easter egg: a rare random chance of an angry red "NO!", or when mashing it
+// (6 asks within 6 seconds). Never angry twice in a row.
+const ANGRY_CHANCE = 0.02, ANGRY_COUNT = 6, ANGRY_WINDOW = 6000;
 let askTimes = [];
 
 function ask() {
@@ -221,7 +221,10 @@ function ask() {
     const t = Date.now();
     askTimes = askTimes.filter(time => t - time < ANGRY_WINDOW);
     askTimes.push(t);
-    theme = askTimes.length >= ANGRY_COUNT || Math.random() < ANGRY_CHANCE ? ANGRY : CALM;
+    const wasAngry = theme === ANGRY;
+    const mashing = askTimes.length >= ANGRY_COUNT;
+    theme = !wasAngry && (mashing || Math.random() < ANGRY_CHANCE) ? ANGRY : CALM;
+    if (theme === ANGRY) askTimes = [];   // start counting fresh after an outburst
 
     state = "thinking";
     frame = 0;
