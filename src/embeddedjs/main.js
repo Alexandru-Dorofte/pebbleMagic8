@@ -42,70 +42,48 @@ const ANSWERS = [
     "HELP! I'M TRAPPED IN THIS BALL!", "RUB THE BALL. FREE THE GENIE.",
 ];
 
-// 5x7 retro pixel font ("#" = lit pixel). Narrow glyphs for punctuation.
-const GLYPHS = {
-    "A": [".###.", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"],
-    "B": ["####.", "#...#", "#...#", "####.", "#...#", "#...#", "####."],
-    "C": [".###.", "#...#", "#....", "#....", "#....", "#...#", ".###."],
-    "D": ["####.", "#...#", "#...#", "#...#", "#...#", "#...#", "####."],
-    "E": ["#####", "#....", "#....", "####.", "#....", "#....", "#####"],
-    "F": ["#####", "#....", "#....", "####.", "#....", "#....", "#...."],
-    "G": [".###.", "#...#", "#....", "#.###", "#...#", "#...#", ".####"],
-    "H": ["#...#", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"],
-    "I": [".###.", "..#..", "..#..", "..#..", "..#..", "..#..", ".###."],
-    "J": ["..###", "...#.", "...#.", "...#.", "...#.", "#..#.", ".##.."],
-    "K": ["#...#", "#..#.", "#.#..", "##...", "#.#..", "#..#.", "#...#"],
-    "L": ["#....", "#....", "#....", "#....", "#....", "#....", "#####"],
-    "M": ["#...#", "##.##", "#.#.#", "#.#.#", "#...#", "#...#", "#...#"],
-    "N": ["#...#", "#...#", "##..#", "#.#.#", "#..##", "#...#", "#...#"],
-    "O": [".###.", "#...#", "#...#", "#...#", "#...#", "#...#", ".###."],
-    "P": ["####.", "#...#", "#...#", "####.", "#....", "#....", "#...."],
-    "Q": [".###.", "#...#", "#...#", "#...#", "#.#.#", "#..#.", ".##.#"],
-    "R": ["####.", "#...#", "#...#", "####.", "#.#..", "#..#.", "#...#"],
-    "S": [".####", "#....", "#....", ".###.", "....#", "....#", "####."],
-    "T": ["#####", "..#..", "..#..", "..#..", "..#..", "..#..", "..#.."],
-    "U": ["#...#", "#...#", "#...#", "#...#", "#...#", "#...#", ".###."],
-    "V": ["#...#", "#...#", "#...#", "#...#", "#...#", ".#.#.", "..#.."],
-    "W": ["#...#", "#...#", "#...#", "#.#.#", "#.#.#", "#.#.#", ".#.#."],
-    "X": ["#...#", "#...#", ".#.#.", "..#..", ".#.#.", "#...#", "#...#"],
-    "Y": ["#...#", "#...#", ".#.#.", "..#..", "..#..", "..#..", "..#.."],
-    "Z": ["#####", "....#", "...#.", "..#..", ".#...", "#....", "#####"],
-    "0": [".###.", "#...#", "#..##", "#.#.#", "##..#", "#...#", ".###."],
-    "1": ["..#..", ".##..", "..#..", "..#..", "..#..", "..#..", ".###."],
-    "8": [".###.", "#...#", "#...#", ".###.", "#...#", "#...#", ".###."],
-    ".": ["..", "..", "..", "..", "..", "##", "##"],
-    ",": ["..", "..", "..", "..", "##", ".#", "#."],
-    "'": ["#", "#", ".", ".", ".", ".", "."],
-    "!": ["#", "#", "#", "#", "#", ".", "#"],
-    "?": [".###.", "#...#", "....#", "...#.", "..#..", ".....", "..#.."],
-    "-": ["...", "...", "...", "###", "...", "...", "..."],
-    ">": ["#....", ".#...", "..#..", "...#.", "..#..", ".#...", "#...."],
-    "_": [".....", ".....", ".....", ".....", ".....", ".....", "#####"],
-    " ": ["...", "...", "...", "...", "...", "...", "..."],
-};
+// 5x7 retro pixel font, packed into one string to save memory (the watch gives
+// apps very little). Each character in FONT_CHARS has 8 codes in FONT: its width,
+// then one code per row whose bits are the lit pixels (code - 48, leftmost = high bit).
+const FONT_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ018.,'!?->_ ";
+const FONT = "5>AAOAAA5NAANAAN5>A@@@A>5NAAAAAN5O@@N@@O5O@@N@@@5>A@GAA?5AAAOAAA5>44444>572222B<5ABDHDBA5@@@@@@O5AKEEAAA5AAIECAA5>AAAAA>5NAAN@@@5>AAAEB=5NAANDBA5?@@>11N5O4444445AAAAAA>5AAAAA:45AAAEEE:5AA:4:AA5AA:44445O1248@O5>ACEIA>54<4444>5>AA>AA>200000332000031211100000111111015>A12404300070005@84248@5000000O30000000";
+// Character code -> position in FONT_CHARS, so text can be read as numbers
+// without creating temporary strings
+const CHAR_INDEX = new Uint8Array(128);
+for (let i = 0; i < FONT_CHARS.length; i++) CHAR_INDEX[FONT_CHARS.charCodeAt(i)] = i;
 
 const WAITING = ["ASKING THE BALL", "LOADING", "THINKING", "PROCESSING"];
 
 let state = "idle";     // idle -> thinking -> answer
 let answer = "";
+let answerLines = [];   // answer split into screen lines, computed once per answer
 let waiting = "";
 let frame = 0;          // animation counter, ticks every 250ms
 
 function textWidth(text, p) {
     let cols = -1;
-    for (const c of text) cols += GLYPHS[c][0].length + 1;
+    for (let i = 0; i < text.length; i++) cols += FONT.charCodeAt(CHAR_INDEX[text.charCodeAt(i)] * 8) - 47;
     return cols * p;
 }
 
+// Draws each run of lit pixels in a glyph row as one rectangle
 function drawText(text, x, y, p, color) {
-    for (const c of text) {
-        const glyph = GLYPHS[c];
+    for (let i = 0; i < text.length; i++) {
+        const base = CHAR_INDEX[text.charCodeAt(i)] * 8;
+        const w = FONT.charCodeAt(base) - 48;
         for (let row = 0; row < 7; row++) {
-            for (let col = 0; col < glyph[row].length; col++) {
-                if (glyph[row][col] === "#") render.fillRectangle(color, x + col * p, y + row * p, p, p);
+            const bits = FONT.charCodeAt(base + 1 + row) - 48;
+            let start = -1;
+            for (let col = 0; col <= w; col++) {
+                if (col < w && (bits >> (w - 1 - col)) & 1) {
+                    if (start < 0) start = col;
+                } else if (start >= 0) {
+                    render.fillRectangle(color, x + start * p, y + row * p, (col - start) * p, p);
+                    start = -1;
+                }
             }
         }
-        x += (glyph[0].length + 1) * p;
+        x += (w + 1) * p;
     }
 }
 
@@ -130,39 +108,31 @@ function wrap(text, p, maxWidth) {
     return lines;
 }
 
-// Pixel-art circle on a grid of p-sized blocks. colorAt(x, y, d) picks each block's
-// color (d = squared distance from the center). Same-colored blocks in a row are merged.
-function drawPixelCircle(cx, cy, r, p, colorAt) {
+// Filled pixel-art disc: one rectangle per row of p-sized blocks, row width snapped to
+// the block grid for the blocky look. Pure math, nothing stored.
+function drawDisc(cx, cy, r, p, color) {
     for (let y = -r; y < r; y += p) {
-        let runStart = 0, runColor;
-        for (let x = -r; x <= r; x += p) {
-            const mx = x + p / 2, my = y + p / 2;
-            const d = mx * mx + my * my;
-            const color = x < r && d <= r * r ? colorAt(mx, my, d) : undefined;
-            if (color !== runColor) {
-                if (runColor !== undefined) render.fillRectangle(runColor, cx + runStart, cy + y, x - runStart, p);
-                runStart = x;
-                runColor = color;
-            }
-        }
+        const my = y + p / 2;
+        if (my * my > r * r) continue;
+        const half = Math.floor((Math.sqrt(r * r - my * my) + p / 2) / p) * p;
+        if (half > 0) render.fillRectangle(color, cx - half, cy + y, half * 2, p);
     }
 }
 
-// 8-ball: dark blue ball, bright rim, shine spot, white window with a black "8"
-function drawBall(cx, cy, r, p) {
-    const windowR = r * 0.45, shineR = r * 0.16, shineX = -r * 0.45, shineY = -r * 0.45;
-    drawPixelCircle(cx, cy, r, p, (x, y, d) => {
-        if (d > (r - p) * (r - p)) return theme.hint;
-        if (d <= windowR * windowR) return white;
-        if ((x - shineX) ** 2 + (y - shineY) ** 2 <= shineR * shineR) return theme.shine;
-        return theme.ball;
-    });
+// 8-ball: discs stacked from back to front: bright rim, dark ball, shine spot,
+// white window, black "8"
+function drawBall(cx, cy, windowColor = white) {
+    drawDisc(cx, cy, 60, 4, theme.hint);
+    drawDisc(cx, cy, 56, 4, theme.ball);
+    drawDisc(cx - 28, cy - 28, 10, 4, theme.shine);
+    drawDisc(cx, cy, 28, 4, windowColor);
     drawText("8", cx - 12, cy - 17, 5, black);
 }
 
-// The answer window: blue liquid with a lighter rim, like the inside of a real 8-ball
-function drawAnswerWindow(cx, cy, r, p) {
-    drawPixelCircle(cx, cy, r, p, (x, y, d) => d > (r - p) * (r - p) ? theme.rim : theme.window);
+// The answer window: colored liquid with a lighter rim, like the inside of a real 8-ball
+function drawAnswerWindow(cx, cy) {
+    drawDisc(cx, cy, 84, 4, theme.rim);
+    drawDisc(cx, cy, 80, 4, theme.window);
 }
 
 function draw() {
@@ -176,19 +146,25 @@ function draw() {
     render.fillRectangle(theme.header, 10, 30, render.width - 20, 2);
 
     if (state === "idle") {
-        drawBall(100, 100, 60, 4);
+        drawBall(100, 100);
         drawCentered(`> SHAKE TO ASK${cursor}`, 176, 2, white);
         drawCentered("OR PRESS SELECT", 198, 2, theme.hint);
     } else if (state === "thinking") {
-        drawBall(100 + (shakeTick % 2 ? 8 : -8), 100, 60, 4);
+        if (theme === ANGRY) {
+            // Angry: violent random shaking, window flashing red and white
+            drawBall(100 + Math.round(Math.random() * 24 - 12), 100 + Math.round(Math.random() * 24 - 12),
+                shakeTick % 2 ? theme.rim : white);
+        } else {
+            drawBall(100 + (shakeTick % 2 ? 8 : -8), 100);
+        }
         // Message centered, with the dots (growing 0-3) on their own line below
         drawCentered(waiting, 178, 2, white);
         drawCentered(".".repeat(Math.floor(shakeTick / 3) % 4), 196, 2, white);
     } else {
-        drawAnswerWindow(100, 120, 84, 4);
+        drawAnswerWindow(100, 120);
         // Typing effect: show only the first `typed` characters, each at its final
         // position, with a "_" cursor after the last one
-        const lines = wrap(answer, 2, 150);
+        const lines = answerLines;
         let y = 120 - Math.round((lines.length * 20 - 6) / 2);
         let left = typed;
         for (const line of lines) {
@@ -215,26 +191,29 @@ let shakeTimer;
 let typeTimer;
 let typed = 0;
 
-// Type the answer one character at a time: fast normally, slow on each dot of
-// a "...", with a longer beat after it, and a short beat after a sentence ends
+// Type the answer fast (2 characters per frame), but slow on each dot of a "...",
+// with a longer beat after it, and a short beat after a sentence ends
+const isPlain = c => c !== undefined && c !== "." && c !== "!" && c !== ",";
 function typeNext() {
     typed++;
+    if (isPlain(answer[typed - 1]) && isPlain(answer[typed])) typed++;
     draw();
     if (typed >= answer.length) {
         lightTimer = setTimeout(() => watch.light(false), 5000);
         return;
     }
     const prev = answer[typed - 1], next = answer[typed];
-    let delay = 35;
-    if (next === "." && (answer[typed + 1] === "." || prev === ".")) delay = 450;
-    else if (prev === "." && answer[typed - 2] === "." && next === " ") delay = 700;
-    else if ((prev === "." || prev === "!" || prev === ",") && next === " ") delay = 250;
+    let delay = 20;
+    if (next === "." && (answer[typed + 1] === "." || prev === ".")) delay = 250;
+    else if (prev === "." && answer[typed - 2] === "." && next === " ") delay = 400;
+    else if ((prev === "." || prev === "!" || prev === ",") && next === " ") delay = 150;
     typeTimer = setTimeout(typeNext, delay);
 }
 let shakeTick = 0;
 
-// Asking 4 times within 8 seconds makes it angry: red theme and a forced "NO!"
-const ANGRY_COUNT = 4, ANGRY_WINDOW = 8000;
+// Asking 4 times within 8 seconds makes it angry: red theme and a forced "NO!".
+// It also has a small random chance of being grumpy for no reason.
+const ANGRY_COUNT = 4, ANGRY_WINDOW = 8000, ANGRY_CHANCE = 0.03;
 let askTimes = [];
 
 function ask() {
@@ -242,7 +221,7 @@ function ask() {
     const t = Date.now();
     askTimes = askTimes.filter(time => t - time < ANGRY_WINDOW);
     askTimes.push(t);
-    theme = askTimes.length >= ANGRY_COUNT ? ANGRY : CALM;
+    theme = askTimes.length >= ANGRY_COUNT || Math.random() < ANGRY_CHANCE ? ANGRY : CALM;
 
     state = "thinking";
     frame = 0;
@@ -259,7 +238,7 @@ function ask() {
     shakeTimer = setInterval(() => {
         shakeTick++;
         draw();
-    }, 100);
+    }, 70);
 
     draw();
     setTimeout(() => {
@@ -273,9 +252,10 @@ function ask() {
             answer = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
             Vibes.doublePulse();
         }
+        answerLines = wrap(answer, 2, 150);
         typed = 0;
         typeNext();
-    }, 1500);
+    }, 900);
 }
 
 // Wrist flick/shake
