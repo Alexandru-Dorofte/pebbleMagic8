@@ -6,6 +6,15 @@ answer in a blue-and-white retro style.
 
 Built with Pebble Alloy (embedded JavaScript, powered by Moddable XS).
 
+## Features
+
+- **42 answers**: the 20 classics plus extras (including a genie trapped in the
+  ball), never the same answer twice in a row
+- **Retro typing**: answers type out terminal-style, with dramatic pauses on `...`
+- **Shake to ask**: wrist flick or Select; vibrates and turns on the backlight
+- **Easter egg**: a rare (2%) angry mode turns everything red, shakes violently
+  and types THE ANSWER IS NO! Mashing it (6 asks in 6 seconds) also sets it off
+
 | Ready | Shaking | Answer |
 |:---:|:---:|:---:|
 | <img src="screenshots/idle.png" alt="Ready" width="200"> | <img src="screenshots/shaking.png" alt="Shaking" width="200"> | <img src="screenshots/answer.png" alt="Answer" width="200"> |
@@ -15,13 +24,15 @@ Built with Pebble Alloy (embedded JavaScript, powered by Moddable XS).
 ```sh
 pebble build                          # build for all targetPlatforms
 pebble install --emulator emery       # install on the emery emulator
-pebble install --phone <ip>           # install to a paired phone
+pebble install --cloudpebble         # install to your watch via the phone's Dev Connect
+pebble install --phone <ip>           # install to a phone on the same Wi-Fi
 ```
 
 ## Target platforms
 
 Alloy targets the modern Pebble hardware: **emery** (Pebble Time 2) and
 **gabbro** (Pebble Round 2). Other platforms are currently not supported.
+The layout is designed for the Time 2's rectangular screen.
 
 ## Project layout
 

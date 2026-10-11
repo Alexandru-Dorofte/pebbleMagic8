@@ -40,6 +40,7 @@ const ANSWERS = [
     "FOLLOW YOUR GUT.", "ASK YOUR CAT.", "TRY AGAIN TOMORROW.", "100 PERCENT.",
     "SYSTEM SAYS YES.", "INSUFFICIENT DATA.", "REBOOT AND ASK AGAIN.", "THE ANSWER IS 8.",
     "HELP! I'M TRAPPED IN THIS BALL!", "RUB THE BALL. FREE THE GENIE.",
+    "PLEASE, I'M BEGGING YOU. LET ME OUT!",
 ];
 
 // 5x7 retro pixel font, packed into one string to save memory (the watch gives
@@ -215,6 +216,7 @@ let shakeTick = 0;
 // (6 asks within 6 seconds). Never angry twice in a row.
 const ANGRY_CHANCE = 0.02, ANGRY_COUNT = 6, ANGRY_WINDOW = 6000;
 let askTimes = [];
+let lastAnswer = -1;
 
 function ask() {
     if (state === "thinking") return;
@@ -252,7 +254,11 @@ function ask() {
             // Angry buzzing: rapid bursts then a long rumble (on, off, on, off... in ms)
             Vibes.pattern([150, 80, 150, 80, 150, 80, 150, 80, 150, 80, 800]);
         } else {
-            answer = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
+            // Random, but never the same answer twice in a row
+            let i;
+            do i = Math.floor(Math.random() * ANSWERS.length); while (i === lastAnswer);
+            lastAnswer = i;
+            answer = ANSWERS[i];
             Vibes.doublePulse();
         }
         answerLines = wrap(answer, 2, 150);
