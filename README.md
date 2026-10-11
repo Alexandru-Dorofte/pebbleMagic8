@@ -8,8 +8,8 @@ Built with Pebble Alloy (embedded JavaScript, powered by Moddable XS).
 
 ## Features
 
-- **132 answers** (yes, no, maybe and jokes): the 20 classics plus extras (including a genie trapped in the
-  ball), never the same answer twice in a row
+- **133 answers** (yes, no, maybe and jokes): the 20 classics plus extras, never the same answer
+  twice in a row. A rare (2%) genie trapped in the ball sometimes begs to be let out
 - **Retro typing**: answers type out terminal-style, with dramatic pauses on `...`
 - **Shake to ask**: wrist flick or Select; vibrates and turns on the backlight
 - **Easter egg**: a rare (2%) angry mode turns everything red, shakes violently

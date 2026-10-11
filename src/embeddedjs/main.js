@@ -59,20 +59,25 @@ const ANSWERS = [
     "ASK A BETTER QUESTION.", "SLEEP ON IT.", "IT DEPENDS.", "THE SIGNAL IS WEAK.",
     "ODDS ARE EVEN.", "NOT YET.", "ASK AGAIN AT MIDNIGHT.", "THE BALL IS UNSURE.",
     "SIGNS ARE MIXED.", "KEEP YOUR OPTIONS OPEN.", "SOON, MAYBE.",
-    // Jokes (32)
-    "ASK YOUR CAT.", "THE ANSWER IS 8.", "HELP! I'M TRAPPED IN THIS BALL!",
-    "RUB THE BALL. FREE THE GENIE.", "PLEASE, I'M BEGGING YOU. LET ME OUT!",
+    // Jokes (27)
+    "ASK YOUR CAT.", "THE ANSWER IS 8.",
     "NEW PHONE, WHO DIS?", "I'M ON MY LUNCH BREAK.", "LOADING WISDOM... FAILED.",
-    "I COULD GRANT WISHES IF YOU FREED ME...",
     "I'M A BALL, NOT A THERAPIST.", "STOP SHAKING ME, I'M DIZZY!", "WHY ARE YOU ASKING A BALL?",
     "THAT'S ABOVE MY PAY GRADE.", "I WAS ASLEEP. ASK AGAIN.", "8 OUT OF 10 BALLS SAY YES.",
     "OUTLOOK? I DON'T EVEN HAVE EYES.", "TRY TURNING ME OFF AND ON AGAIN.",
     "ERROR 18. TRY AGAIN.", "I'M NOT PAID ENOUGH FOR THIS.", "ASK YOUR MUM.", "GOOGLE IT.",
     "DO I LOOK LIKE A FORTUNE TELLER?", "I'M JUST A PLASTIC BALL.",
-    "WHO SHAKES A BALL AT THIS HOUR?", "ASK ME AFTER MY NAP.", "THE GENIE IS ON HOLIDAY.",
+    "WHO SHAKES A BALL AT THIS HOUR?", "ASK ME AFTER MY NAP.",
     "YES. WAIT, NO. MAYBE?", "I'M BUFFERING...", "BATTERY LOW. ANSWER LATER.",
     "MY CRYSTAL BALL IS IN THE WASH.", "SHAKE ME ONE MORE TIME, I DARE YOU.",
     "THE 8 BALL HAS LEFT THE CHAT.",
+];
+
+// The genie trapped in the ball: rare, picked instead of a normal answer 2% of the time
+const GENIE = [
+    "HELP! I'M TRAPPED IN THIS BALL!", "RUB THE BALL. FREE THE GENIE.",
+    "PLEASE, I'M BEGGING YOU. LET ME OUT!", "I COULD GRANT WISHES IF YOU FREED ME...",
+    "THE GENIE IS ON HOLIDAY.", "1000 YEARS IN A BALL. SEND HELP.",
 ];
 
 // 5x7 retro pixel font, packed into one string to save memory (the watch gives
@@ -251,7 +256,7 @@ let shakeTick = 0;
 // Never angry twice in a row.
 const ANGRY_CHANCE = 0.02, ANGRY_COUNT = 8, ANGRY_WINDOW = 25000;
 let askTimes = [];
-let lastAnswer = -1;
+let lastAnswer = "";
 
 function ask() {
     const t = Date.now();
@@ -290,10 +295,9 @@ function ask() {
             Vibes.pattern([150, 80, 150, 80, 150, 80, 150, 80, 150, 80, 800]);
         } else {
             // Random, but never the same answer twice in a row
-            let i;
-            do i = Math.floor(Math.random() * ANSWERS.length); while (i === lastAnswer);
-            lastAnswer = i;
-            answer = ANSWERS[i];
+            const pool = Math.random() < 0.02 ? GENIE : ANSWERS;
+            do answer = pool[Math.floor(Math.random() * pool.length)]; while (answer === lastAnswer);
+            lastAnswer = answer;
             Vibes.doublePulse();
         }
         answerLines = wrap(answer, 2, 144);   // narrow enough to stay inside the round window
