@@ -8,7 +8,7 @@ Built with Pebble Alloy (embedded JavaScript, powered by Moddable XS).
 
 ## Features
 
-- **64 answers** (yes, no, maybe and jokes): the 20 classics plus extras (including a genie trapped in the
+- **72 answers** (yes, no, maybe and jokes): the 20 classics plus extras (including a genie trapped in the
   ball), never the same answer twice in a row
 - **Retro typing**: answers type out terminal-style, with dramatic pauses on `...`
 - **Shake to ask**: wrist flick or Select; vibrates and turns on the backlight
