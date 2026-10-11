@@ -174,16 +174,25 @@ function draw() {
         drawCentered(".".repeat(Math.floor(shakeTick / 3) % 4), 196, 2, white);
     } else {
         drawAnswerWindow(100, 120, 84, 4);
+        // Typing effect: show only the first `typed` characters, each at its final
+        // position, with a "_" cursor after the last one
         const lines = wrap(answer, 2, 150);
         let y = 120 - Math.round((lines.length * 20 - 6) / 2);
+        let left = typed;
         for (const line of lines) {
-            drawCentered(line, y, 2, white);
+            const x = Math.round((render.width - textWidth(line, 2)) / 2);
+            const shown = line.slice(0, Math.max(0, left));
+            drawText(shown, x, y, 2, white);
+            if (typed < answer.length && left >= 0 && left <= line.length) {
+                drawText("_", shown ? x + textWidth(shown, 2) + 2 : x, y, 2, white);
+            }
+            left -= line.length + 1;   // +1 for the space the line break replaced
             y += 20;
         }
-        drawCentered(`> SHAKE AGAIN${cursor}`, render.height - 14, 1, midBlue);
+        if (typed >= answer.length) drawCentered(`> SHAKE AGAIN${cursor}`, render.height - 14, 1, midBlue);
     }
 
-    // CRT scanlines: a thin midBlue line every 4 pixels
+    // CRT scanlines: a thin dark line every 4 pixels
     for (let y = 3; y < render.height; y += 4) render.fillRectangle(black, 0, y, render.width, 1);
 
     render.end();
@@ -191,6 +200,25 @@ function draw() {
 
 let lightTimer;
 let shakeTimer;
+let typeTimer;
+let typed = 0;
+
+// Type the answer one character at a time: fast normally, slow on each dot of
+// a "...", with a longer beat after it, and a short beat after a sentence ends
+function typeNext() {
+    typed++;
+    draw();
+    if (typed >= answer.length) {
+        lightTimer = setTimeout(() => watch.light(false), 5000);
+        return;
+    }
+    const prev = answer[typed - 1], next = answer[typed];
+    let delay = 35;
+    if (next === "." && (answer[typed + 1] === "." || prev === ".")) delay = 450;
+    else if (prev === "." && answer[typed - 2] === "." && next === " ") delay = 700;
+    else if ((prev === "." || prev === "!" || prev === ",") && next === " ") delay = 250;
+    typeTimer = setTimeout(typeNext, delay);
+}
 let shakeTick = 0;
 
 function ask() {
@@ -199,8 +227,9 @@ function ask() {
     frame = 0;
     Vibes.shortPulse();
 
-    // Backlight on so the answer can be read; back to normal 5s after it shows
+    // Backlight on so the answer can be read; back to normal 5s after it's typed out
     clearTimeout(lightTimer);
+    clearTimeout(typeTimer);
     watch.light(true);
 
     // Shake the ball quickly while "thinking", with a random waiting message
@@ -217,8 +246,8 @@ function ask() {
         answer = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
         state = "answer";
         Vibes.doublePulse();
-        draw();
-        lightTimer = setTimeout(() => watch.light(false), 5000);
+        typed = 0;
+        typeNext();
     }, 1500);
 }
 
