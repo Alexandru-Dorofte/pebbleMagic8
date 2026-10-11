@@ -224,9 +224,9 @@ function typeNext() {
 let shakeTick = 0;
 
 // Easter egg: a rare random chance of an angry red "NO!", or when pestered
-// (5 shakes within 15 seconds, impatient shakes while thinking count too).
+// (8 shakes within 25 seconds, impatient shakes while thinking count too).
 // Never angry twice in a row.
-const ANGRY_CHANCE = 0.02, ANGRY_COUNT = 5, ANGRY_WINDOW = 15000;
+const ANGRY_CHANCE = 0.02, ANGRY_COUNT = 8, ANGRY_WINDOW = 25000;
 let askTimes = [];
 let lastAnswer = -1;
 
