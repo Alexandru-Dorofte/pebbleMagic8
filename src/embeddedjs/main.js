@@ -223,17 +223,18 @@ function typeNext() {
 }
 let shakeTick = 0;
 
-// Easter egg: a rare random chance of an angry red "NO!", or when mashing it
-// (6 asks within 6 seconds). Never angry twice in a row.
-const ANGRY_CHANCE = 0.02, ANGRY_COUNT = 6, ANGRY_WINDOW = 6000;
+// Easter egg: a rare random chance of an angry red "NO!", or when pestered
+// (5 shakes within 15 seconds, impatient shakes while thinking count too).
+// Never angry twice in a row.
+const ANGRY_CHANCE = 0.02, ANGRY_COUNT = 5, ANGRY_WINDOW = 15000;
 let askTimes = [];
 let lastAnswer = -1;
 
 function ask() {
-    if (state === "thinking") return;
     const t = Date.now();
     askTimes = askTimes.filter(time => t - time < ANGRY_WINDOW);
     askTimes.push(t);
+    if (state === "thinking") return;
     const wasAngry = theme === ANGRY;
     const mashing = askTimes.length >= ANGRY_COUNT;
     theme = !wasAngry && (mashing || Math.random() < ANGRY_CHANCE) ? ANGRY : CALM;
@@ -254,7 +255,7 @@ function ask() {
     shakeTimer = setInterval(() => {
         shakeTick++;
         draw();
-    }, 70);
+    }, 100);
 
     draw();
     setTimeout(() => {
@@ -275,7 +276,7 @@ function ask() {
         answerLines = wrap(answer, 2, 144);   // narrow enough to stay inside the round window
         typed = 0;
         typeNext();
-    }, 900);
+    }, 1600);
 }
 
 // Wrist flick/shake

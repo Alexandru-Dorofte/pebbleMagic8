@@ -13,7 +13,7 @@ Built with Pebble Alloy (embedded JavaScript, powered by Moddable XS).
 - **Retro typing**: answers type out terminal-style, with dramatic pauses on `...`
 - **Shake to ask**: wrist flick or Select; vibrates and turns on the backlight
 - **Easter egg**: a rare (2%) angry mode turns everything red, shakes violently
-  and types THE ANSWER IS NO! Mashing it (6 asks in 6 seconds) also sets it off
+  and types THE ANSWER IS NO! Pestering it (5 shakes in 15 seconds) also sets it off
 
 | Ready | Shaking | Answer |
 |:---:|:---:|:---:|
