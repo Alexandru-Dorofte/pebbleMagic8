@@ -27,6 +27,7 @@ const ANSWERS = [
     "THE STARS SAY YES.", "ONLY IF YOU BELIEVE.", "MAYBE... MAYBE NOT.", "YOU ALREADY KNOW.",
     "FOLLOW YOUR GUT.", "ASK YOUR CAT.", "TRY AGAIN TOMORROW.", "100 PERCENT.",
     "SYSTEM SAYS YES.", "INSUFFICIENT DATA.", "REBOOT AND ASK AGAIN.", "THE ANSWER IS 8.",
+    "HELP! I'M TRAPPED IN THIS BALL!", "RUB THE BALL. FREE THE GENIE.",
 ];
 
 // 5x7 retro pixel font ("#" = lit pixel). Narrow glyphs for punctuation.
