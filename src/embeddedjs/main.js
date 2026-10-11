@@ -8,12 +8,24 @@ const render = new Poco(screen);
 // Blue and white theme, like the inside of a real 8-ball
 const black = render.makeColor(0, 0, 0);
 const white = render.makeColor(255, 255, 255);
-const lightBlue = render.makeColor(85, 170, 255);
-const midBlue = render.makeColor(0, 170, 255);
-const ballColor = render.makeColor(0, 0, 85);
-const shineColor = render.makeColor(85, 170, 255);
-const blue = render.makeColor(0, 0, 170);
-const blueRim = render.makeColor(0, 85, 255);
+const CALM = {
+    header: render.makeColor(85, 170, 255),
+    hint: render.makeColor(0, 170, 255),
+    ball: render.makeColor(0, 0, 85),
+    shine: render.makeColor(85, 170, 255),
+    window: render.makeColor(0, 0, 170),
+    rim: render.makeColor(0, 85, 255),
+};
+// Same roles in red, for when it gets asked too much
+const ANGRY = {
+    header: render.makeColor(255, 85, 85),
+    hint: render.makeColor(255, 0, 0),
+    ball: render.makeColor(85, 0, 0),
+    shine: render.makeColor(255, 85, 85),
+    window: render.makeColor(170, 0, 0),
+    rim: render.makeColor(255, 0, 0),
+};
+let theme = CALM;
 
 const ANSWERS = [
     "IT IS CERTAIN.", "WITHOUT A DOUBT.", "YES, DEFINITELY.", "YOU MAY RELY ON IT.",
@@ -140,17 +152,17 @@ function drawPixelCircle(cx, cy, r, p, colorAt) {
 function drawBall(cx, cy, r, p) {
     const windowR = r * 0.45, shineR = r * 0.16, shineX = -r * 0.45, shineY = -r * 0.45;
     drawPixelCircle(cx, cy, r, p, (x, y, d) => {
-        if (d > (r - p) * (r - p)) return midBlue;
+        if (d > (r - p) * (r - p)) return theme.hint;
         if (d <= windowR * windowR) return white;
-        if ((x - shineX) ** 2 + (y - shineY) ** 2 <= shineR * shineR) return shineColor;
-        return ballColor;
+        if ((x - shineX) ** 2 + (y - shineY) ** 2 <= shineR * shineR) return theme.shine;
+        return theme.ball;
     });
     drawText("8", cx - 12, cy - 17, 5, black);
 }
 
 // The answer window: blue liquid with a lighter rim, like the inside of a real 8-ball
 function drawAnswerWindow(cx, cy, r, p) {
-    drawPixelCircle(cx, cy, r, p, (x, y, d) => d > (r - p) * (r - p) ? blueRim : blue);
+    drawPixelCircle(cx, cy, r, p, (x, y, d) => d > (r - p) * (r - p) ? theme.rim : theme.window);
 }
 
 function draw() {
@@ -160,13 +172,13 @@ function draw() {
     render.fillRectangle(black, 0, 0, render.width, render.height);
 
     // Header bar
-    drawCentered("MAGIC-8 OS", 10, 2, lightBlue);
-    render.fillRectangle(lightBlue, 10, 30, render.width - 20, 2);
+    drawCentered("MAGIC-8 OS", 10, 2, theme.header);
+    render.fillRectangle(theme.header, 10, 30, render.width - 20, 2);
 
     if (state === "idle") {
         drawBall(100, 100, 60, 4);
         drawCentered(`> SHAKE TO ASK${cursor}`, 176, 2, white);
-        drawCentered("OR PRESS SELECT", 198, 2, midBlue);
+        drawCentered("OR PRESS SELECT", 198, 2, theme.hint);
     } else if (state === "thinking") {
         drawBall(100 + (shakeTick % 2 ? 8 : -8), 100, 60, 4);
         // Message centered, with the dots (growing 0-3) on their own line below
@@ -189,7 +201,7 @@ function draw() {
             left -= line.length + 1;   // +1 for the space the line break replaced
             y += 20;
         }
-        if (typed >= answer.length) drawCentered(`> SHAKE AGAIN${cursor}`, render.height - 14, 1, midBlue);
+        if (typed >= answer.length) drawCentered(`> SHAKE AGAIN${cursor}`, render.height - 14, 1, theme.hint);
     }
 
     // CRT scanlines: a thin dark line every 4 pixels
@@ -221,8 +233,17 @@ function typeNext() {
 }
 let shakeTick = 0;
 
+// Asking 4 times within 8 seconds makes it angry: red theme and a forced "NO!"
+const ANGRY_COUNT = 4, ANGRY_WINDOW = 8000;
+let askTimes = [];
+
 function ask() {
     if (state === "thinking") return;
+    const t = Date.now();
+    askTimes = askTimes.filter(time => t - time < ANGRY_WINDOW);
+    askTimes.push(t);
+    theme = askTimes.length >= ANGRY_COUNT ? ANGRY : CALM;
+
     state = "thinking";
     frame = 0;
     Vibes.shortPulse();
@@ -243,9 +264,15 @@ function ask() {
     draw();
     setTimeout(() => {
         clearInterval(shakeTimer);
-        answer = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
         state = "answer";
-        Vibes.doublePulse();
+        if (theme === ANGRY) {
+            answer = "THE ANSWER IS NO!";
+            // Angry buzzing: rapid bursts then a long rumble (on, off, on, off... in ms)
+            Vibes.pattern([150, 80, 150, 80, 150, 80, 150, 80, 150, 80, 800]);
+        } else {
+            answer = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
+            Vibes.doublePulse();
+        }
         typed = 0;
         typeNext();
     }, 1500);
