@@ -15,9 +15,9 @@ Built with Pebble Alloy (embedded JavaScript, powered by Moddable XS).
 - **Easter egg**: a rare (2%) angry mode turns everything red, shakes violently
   and types THE ANSWER IS NO! Pestering it (8 shakes in 25 seconds) also sets it off
 
-| Ready | Shaking | Answer |
-|:---:|:---:|:---:|
-| <img src="screenshots/idle.png" alt="Ready" width="200"> | <img src="screenshots/shaking.png" alt="Shaking" width="200"> | <img src="screenshots/answer.png" alt="Answer" width="200"> |
+| Ready | Shaking | Answer | Angry |
+|:---:|:---:|:---:|:---:|
+| <img src="screenshots/idle.png" alt="Ready" width="200"> | <img src="screenshots/shaking.png" alt="Shaking" width="200"> | <img src="screenshots/answer.png" alt="Answer" width="200"> | <img src="screenshots/angry.png" alt="Angry" width="200"> |
 
 ## Building & running
 
